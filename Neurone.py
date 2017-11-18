@@ -2,21 +2,29 @@ import random, math, pickle
 
 
 class Neurone:
-    def __init__(self, ativ, neurones_num):
+    def __init__(self, ativ, neurones_num, inConnectionList, outConnectionList):
         self.ativ = ativ
         self.delta = 0.0
-        self.weights = [random.uniform(0.0, 1.0) for i in range(0,neurones_num)]
 		
 		
-def delta(self, deltaListPreviousLayer):
-	for i,delta in enumerate(deltaListPreviousLayer):
-		deltaNeuron += self.weights[i]*delta*ativ*(1-ativ)
+def delta(self, deltaListNextLayer):
+	for i,delta in enumerate(deltaListNextLayer):
+		deltaNeuron += outConnectionList[i].weight*delta*ativ*(1-ativ)
 	self.delta = deltaNeuron
 	
 	return
 	
 def deltaOutput(self, foreseenClass):
 
-	self.detal = ativ - foreseenClass
+	self.delta = self.ativ - foreseenClass
+	
+	return
+	
+def activation(self, ativListPreviousLayer)
+	
+	self.ativ = 0
+	
+	for i,activia in enumerate(ativListPreviousLayer)
+		self.ativ += inConnectionList[i].weight*activia
 	
 	return
