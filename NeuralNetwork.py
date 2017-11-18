@@ -2,7 +2,7 @@ from Layer import Layer
 
 
 class NeuralNetwork:
-    def __init__(self, layer_num, neuronsPerLayer_num, attributes_num, classes_num):
+    def __init__(self, layer_num, neuronsPerLayer_num, attributes_num, classes_num, dataSetName):
         self.classes_num = classes_num   #  maybe there's a more complicated calculation here
         self.layers = [Layer(attributes_num, 0)]
         for i in range(0, layer_num):
