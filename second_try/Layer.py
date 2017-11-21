@@ -6,6 +6,12 @@ output_layer = 2
 
 random_limit = 2.0
 
+k = 50  # número de instâncias por época (?)
+
+delta = 1  # valor que o erro deve diminuir para continuar o backprop
+
+epsilon = 1  # valor que o erro deve chegar para parar o backprop
+
 
 def sigmoid(x):
     return 1.0/(1 + math.exp(-x))
@@ -134,6 +140,65 @@ class NeuralNet:
                 self.layers[i+1].set_input_from_activia(self.layers[i].activia)  # passa a saída da layer atual como entrada da próxima
 
         return
+
+    def err_func_single(self, y):
+        predicted = self.layers[self.layer_num-1].activia
+        k = predicted.__len__()
+        err = 0.0
+        for i in range(k):
+            err += - (y[i] * k * math.log10(predicted[i])) - (1-y[i]) * k * (math.log10(1-predicted[i]))
+
+        return err
+
+    def err_func(self):
+        n = self.train.__len__()
+        err = 0.0
+        for inst in self.train:
+            err += self.err_func_single(expected)
+        err = err/n
+
+        return err
+
+    def calc_deltas(self, expected):
+        self.layers[self.layer_num-1].output_delta(expected)
+        for i in range(self.layer_num-2, 0, -1):
+            self.layers[i].delta(self.layers[i+1].deltas, self.layers[i+1].weights)
+
+        return
+
+    def calc_gradients(self):
+        for i in range(self.layer_num-1, 0, -1):
+            self.layers[i].gradient()
+
+        return
+
+    def make_updates(self):
+        for i in range(self.layer_num - 1, 0, -1):
+            self.layers[i].update()
+
+        return
+
+    def train(self):
+        i = 0
+        err_prev = 0.0
+        for inst in self.train:
+            self.forward_feed(inst)
+            self.calc_deltas(expected)  #  get the expected here somehow TODO
+            self.calc_gradients()
+            self.make_updates()
+
+            i += 1
+            if i == k:
+                i = 0
+                err = self.err_func()
+                if err_prev - err < delta:
+                    break
+                if err < epsilon:
+                    break
+                err_prev = err
+
+        return
+
 
 neural_net = NeuralNet()
 
