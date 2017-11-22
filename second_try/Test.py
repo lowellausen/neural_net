@@ -7,3 +7,6 @@ if __name__ == '__main__':
             break
         print(i)
 
+    inst = ([0 for i in range(5)], [1 for i in range(5)])
+
+    print(inst)

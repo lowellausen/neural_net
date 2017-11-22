@@ -8,9 +8,9 @@ random_limit = 2.0
 
 k = 50  # número de instâncias por época (?)
 
-delta = 1  # valor que o erro deve diminuir para continuar o backprop
+delta = -1  # valor que o erro deve diminuir para continuar o backprop
 
-epsilon = 1  # valor que o erro deve chegar para parar o backprop
+epsilon = -1  # valor que o erro deve chegar para parar o backprop
 
 
 def sigmoid(x):
@@ -22,7 +22,7 @@ class Layer:
         self.alpha = alpha
         self.neuron_num = neuron_num
         self.inputs_num = inputs_num
-        self.ins_per_neuron = inputs_num/neuron_num
+        self.ins_per_neuron = inputs_num//neuron_num
         self.type = type
         #  inicializa pesos com valor randomico,
         if self.type is input_layer:
@@ -48,7 +48,7 @@ class Layer:
 
     def set_input_from_activia(self, activia):
         for i in range(self.neuron_num):
-            for j in activia:
+            for j in range(activia.__len__()):
                 index = (i * activia.__len__()) + j
                 self.input[index] = activia[j]
 
@@ -62,7 +62,8 @@ class Layer:
                 sum += self.weights[index] * self.input[index]
             if self.type is not input_layer:
                 sum += self.bias_weights[i]
-            self.activia[i] = sigmoid(sum)
+                sum = sigmoid(sum)
+            self.activia[i] = sum
 
         return
 
@@ -126,7 +127,7 @@ class NeuralNet:
         self.layers.append(Layer(input_layer, self.neurons_input_layer, self.neurons_input_layer, self.alpha))
         #  primeira hidden layer tem um número diferenciado de entradas
         self.layers.append(Layer(hidden_layer, self.neurons_hidden_layer, self.neurons_input_layer, self.alpha))
-        for i in range(self.layer_num):
+        for i in range(self.layer_num-1):
             self.layers.append(Layer(hidden_layer, self.neurons_hidden_layer, self.neurons_hidden_layer * self.neurons_hidden_layer, self.alpha))
         self.layers.append(Layer(output_layer, self.neurons_output_layer, self.neurons_hidden_layer * self.neurons_output_layer, self.alpha))
 
@@ -134,7 +135,7 @@ class NeuralNet:
         for i in range(self.neurons_input_layer):
             self.layers[0].input[i] = train_inst[i]  # passa o exemplo de treinamento para a entrada da inpt layer
 
-        for i in range(self.layer_num):
+        for i in range(self.layer_num+2):
             self.layers[i].activation()  # calcula a ativação com a entrada (input layer já recebeu a entrada)
             if self.layers[i].type is not output_layer:
                 self.layers[i+1].set_input_from_activia(self.layers[i].activia)  # passa a saída da layer atual como entrada da próxima
@@ -142,11 +143,11 @@ class NeuralNet:
         return
 
     def err_func_single(self, y):
-        predicted = self.layers[self.layer_num-1].activia
+        predicted = self.layers[self.layer_num+2-1].activia
         k = predicted.__len__()
         err = 0.0
         for i in range(k):
-            err += - (y[i] * k * math.log10(predicted[i])) - (1-y[i]) * k * (math.log10(1-predicted[i]))
+            err += - (y[i] * k * math.log1p(predicted[i]-1)) - (1-y[i]) * k * (math.log1p(-predicted[i]))
 
         return err
 
@@ -154,36 +155,36 @@ class NeuralNet:
         n = self.train.__len__()
         err = 0.0
         for inst in self.train:
-            err += self.err_func_single(expected)
+            err += self.err_func_single(inst[1])
         err = err/n
 
         return err
 
     def calc_deltas(self, expected):
-        self.layers[self.layer_num-1].output_delta(expected)
-        for i in range(self.layer_num-2, 0, -1):
+        self.layers[self.layer_num+2-1].output_delta(expected)
+        for i in range(self.layer_num, 0, -1):
             self.layers[i].delta(self.layers[i+1].deltas, self.layers[i+1].weights)
 
         return
 
     def calc_gradients(self):
-        for i in range(self.layer_num-1, 0, -1):
+        for i in range(self.layer_num+2-1, 0, -1):
             self.layers[i].gradient()
 
         return
 
     def make_updates(self):
-        for i in range(self.layer_num - 1, 0, -1):
+        for i in range(self.layer_num+2-1, 0, -1):
             self.layers[i].update()
 
         return
 
-    def train(self):
+    def train_net(self):
         i = 0
         err_prev = 0.0
         for inst in self.train:
-            self.forward_feed(inst)
-            self.calc_deltas(expected)  #  get the expected here somehow TODO
+            self.forward_feed(inst[0])
+            self.calc_deltas(inst[1])
             self.calc_gradients()
             self.make_updates()
 
@@ -197,10 +198,19 @@ class NeuralNet:
                     break
                 err_prev = err
 
+            print(self.err_func())
+
         return
 
 
 neural_net = NeuralNet()
 
 if __name__ == '__main__':
-    neural_net.initialize('cancer.dat', 3, 5, 1, 2, 0.5)
+    #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha):
+    neural_net.initialize('cancer.dat', 1, 1, 1, 1, 0.5)
+    neural_net.train = [([1.5], [1.0])]
+    neural_net.layers[1].weights = [0.39]
+    neural_net.layers[2].weights = [0.94]
+    neural_net.layers[1].bias_weights = [0.0]
+    neural_net.layers[2].bias_weights = [0.0]
+    neural_net.train_net()
