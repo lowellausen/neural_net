@@ -44,8 +44,9 @@ def calc_num_gradients(eps):
             neural_net_mini.layers[l].weights[w] -= 2*eps  # 2 vezes para tirar o que foi posto antes
             neural_net_mini.forward_feed(neural_net_mini.train[0][0])
             minus_eps = neural_net_mini.err_func_single(neural_net_mini.train[0][1])
-            num_grads[i] = (plus_eps - minus_eps) / 2 * eps
+            num_grads[i] = (plus_eps - minus_eps) / (2 * eps)
             i += 1
+            neural_net_mini.layers[l].weights[w] += eps  # volta o peso ao valor original
 
     print(back_prop_grads)
     print(num_grads)
@@ -498,4 +499,4 @@ if __name__ == '__main__':
     #     neural_net.train_net()
     # neural_net.test_net(2)
     # print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
-    calc_num_gradients(0.01)
+    calc_num_gradients(0.0000001)
