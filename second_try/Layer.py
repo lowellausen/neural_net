@@ -155,6 +155,7 @@ class NeuralNet:
         self.err = 0.0
         self.recall = 0.0
         self.acc = 0.0
+        self.prec = 0.0
         self.weight_sum = 0.0
 
     def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha, lamb):
@@ -255,21 +256,21 @@ class NeuralNet:
 
         return
 
-    def test_single(self, expected):
+    def test_single(self, expected, target):
         predicted = self.layers[self.layer_num+2-1].activia
         real_class = expected.index(max(expected))
         pred_class = predicted.index(max(predicted))
 
-        if real_class is 0 and pred_class is 0:
+        if real_class is target and pred_class is target:
             return 'vp'
-        if real_class is 0 and pred_class is not 0:
+        if real_class is target and pred_class is not target:
             return 'fn'
-        if real_class is not 0 and pred_class is not 0:
+        if real_class is not target and pred_class is not target:
             return 'vn'
-        if real_class is not 0 and pred_class is 0:
+        if real_class is not target and pred_class is target:
             return 'fp'
 
-    def test_net(self, class_num):
+    def test_net(self):
         n = self.test.__len__()
         vp = 0  # verdadeiros positivos
         vn = 0  # verdadeiroa negativos
@@ -277,19 +278,84 @@ class NeuralNet:
         fn = 0  # falsos negativos
         for inst in self.test:
             self.forward_feed(inst[0])
-            res = self.test_single(inst[1])
-            if res in 'vp':
+            res = self.test_single(inst[1], 0)
+            if res is 'vp':
                 vp += 1.0
-            if res in 'vn':
+            if res is 'vn':
                 vn += 1.0
-            if res in 'fp':
+            if res is 'fp':
                 fp += 1.0
-            if res in 'fn':
+            if res is 'fn':
                 fn += 1.0
         self.recall = vp/(vp+fn)
         self.acc = (vp+vn)/n
+        self.prec = vp/(vp+fp)
 
         return
+
+    """def test_net_3class(self):
+        n = self.test.__len__()
+        vp0 = 0  # verdadeiros positivos
+        vn0 = 0  # verdadeiroa negativos
+        fp0 = 0  # falsos positivos
+        fn0 = 0  # falsos negativos
+        vp1 = 0  # verdadeiros positivos
+        vn1 = 0  # verdadeiroa negativos
+        fp1 = 0  # falsos positivos
+        fn1 = 0  # falsos negativos
+        vp2 = 0  # verdadeiros positivos
+        vn2 = 0  # verdadeiroa negativos
+        fp2 = 0  # falsos positivos
+        fn2 = 0  # falsos negativos
+        for inst in self.test:
+            self.forward_feed(inst[0])
+            res0 = self.test_single(inst[1], 0)
+            res1 = self.test_single(inst[1], 1)
+            res2 = self.test_single(inst[1], 2)
+            if res0 is 'vp':
+                vp0 += 1.0
+            if res0 is 'vn':
+                vn0 += 1.0
+            if res0 is 'fp':
+                fp0 += 1.0
+            if res0 is 'fn':
+                fn0 += 1.0
+            
+            if res1 is 'vp':
+                vp1 += 1.0
+            if res1 is 'vn':
+                vn1 += 1.0
+            if res1 is 'fp':
+                fp1 += 1.0
+            if res1 is 'fn':
+                fn1 += 1.0
+                
+            if res2 is 'vp':
+                vp2 += 1.0
+            if res2 is 'vn':
+                vn2 += 1.0
+            if res2 is 'fp':
+                fp2 += 1.0
+            if res2 is 'fn':
+                fn2 += 1.0
+        
+        recall0 = vp0 / (vp0+fn0)
+        recall1 = vp1 / (vp1 + fn1)
+        recall2 = vp2 / (vp2 + fn2)
+
+        acc0 = (vp0 + vn0) / n
+        acc1 = (vp1 + vn1) / n
+        acc2 = (vp2 + vn2) / n
+
+        prec0 = vp0 / (vp0 + fp0)
+        prec1 = vp1 / (vp1 + fp1)
+        prec2 = vp2 / (vp2 + fp2)
+                
+        self.recall = (recall0 + recall1 + recall2)/3
+        self.acc = (acc0 + acc1 + acc2) / 3
+        self.prec = (prec0 + prec1 + prec2) / 3
+
+        return"""   #  not quite working
 
     def read_haberman(self):
         haberman_in = open('haberman.data', 'rU').read().splitlines()
@@ -499,17 +565,17 @@ class NeuralNet:
         return
 
 if __name__ == '__main__':
-    #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha):
+    #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha, lamb):
     neural_net = NeuralNet()
-    neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.1, 0.5)
+    neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.01, 0.2)
      #neural_net.train = [([1.5], [1.0])]
     #  neural_net.layers[1].weights = [0.39]
-     # neural_net.layers[2].weights = [0.94]
-      #neural_net.layers[1].bias_weights = [0.0]
-      #neural_net.layers[2].bias_weights = [0.0]
-    neural_net.read_haberman()
+    # neural_net.layers[2].weights = [0.94]
+    #neural_net.layers[1].bias_weights = [0.0]
+    #neural_net.layers[2].bias_weights = [0.0]
+    neural_net.read_cmc()
     for i in range(1):
         neural_net.train_net()
-    neural_net.test_net(2)
-    print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
+    neural_net.test_net()
+    print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall)+ '  Prec = ' + str(neural_net.prec))
     # calc_num_gradients(0.0000001)
