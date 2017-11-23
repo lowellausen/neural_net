@@ -20,6 +20,37 @@ def sigmoid(x):
     return 1.0/(1 + math.exp(-x))
 
 
+def calc_num_gradients(eps):
+    neural_net_mini = NeuralNet()
+    neural_net_mini.initialize('none', 1, 1, 1, 1, 0.3)
+    neural_net_mini.train = [([1.5], [1.0])]
+    #  neural_net.layers[1].weights = [0.39]
+    #  neural_net.layers[2].weights = [0.94]
+    #  neural_net.layers[1].bias_weights = [0.0]
+    #  neural_net.layers[2].bias_weights = [0.0]
+    neural_net_mini.forward_feed(neural_net_mini.train[0][0])
+    neural_net_mini.calc_deltas(neural_net_mini.train[0][1])
+    neural_net_mini.calc_gradients()  # calculando grads reais
+    back_prop_grads = [grad for layer in neural_net_mini.layers for grad in layer.gradients if layer.type is not input_layer]
+
+    num_grads = [0.0 for i in range(back_prop_grads.__len__())]
+    #  calculando grads numéricos:
+    i = 0
+    for l in range(1, neural_net_mini.layer_num+2):
+        for w in range(neural_net_mini.layers[l].inputs_num):
+            neural_net_mini.layers[l].weights[w] += eps
+            neural_net_mini.forward_feed(neural_net_mini.train[0][0])
+            plus_eps = neural_net_mini.err_func_single(neural_net_mini.train[0][1])
+            neural_net_mini.layers[l].weights[w] -= 2*eps  # 2 vezes para tirar o que foi posto antes
+            neural_net_mini.forward_feed(neural_net_mini.train[0][0])
+            minus_eps = neural_net_mini.err_func_single(neural_net_mini.train[0][1])
+            num_grads[i] = (plus_eps - minus_eps) / 2 * eps
+            i += 1
+
+    print(back_prop_grads)
+    print(num_grads)
+
+
 class Layer:
     def __init__(self, type, neuron_num, inputs_num, alpha):
         self.alpha = alpha
@@ -453,18 +484,18 @@ class NeuralNet:
 
         return
 
-neural_net = NeuralNet()
-
 if __name__ == '__main__':
     #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha):
-    neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.01)
+    # neural_net = NeuralNet()
+    # neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.01)
     # neural_net.train = [([1.5], [1.0])]
     #  neural_net.layers[1].weights = [0.39]
     #  neural_net.layers[2].weights = [0.94]
     #  neural_net.layers[1].bias_weights = [0.0]
     #  neural_net.layers[2].bias_weights = [0.0]
-    neural_net.read_haberman()
-    for i in range(1):
-        neural_net.train_net()
-    neural_net.test_net(2)
-    print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
+    # neural_net.read_haberman()
+    # for i in range(1):
+    #     neural_net.train_net()
+    # neural_net.test_net(2)
+    # print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
+    calc_num_gradients(0.01)
