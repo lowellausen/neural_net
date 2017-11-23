@@ -22,7 +22,7 @@ def sigmoid(x):
 
 def calc_num_gradients(eps):
     neural_net_mini = NeuralNet()
-    neural_net_mini.initialize('none', 1, 1, 1, 1, 0.3)
+    neural_net_mini.initialize('none', 1, 1, 1, 1, 0.3, 0.0)
     neural_net_mini.train = [([1.5], [1.0])]
     #  neural_net.layers[1].weights = [0.39]
     #  neural_net.layers[2].weights = [0.94]
@@ -121,10 +121,10 @@ class Layer:
 
         return
 
-    def gradient(self):
+    def gradient(self, lamb):
         for i in range(self.inputs_num):
             index = i//self.ins_per_neuron
-            self.gradients[i] = self.input[i] * self.deltas[index]
+            self.gradients[i] = (self.input[i] * self.deltas[index]) + lamb * self.weights[i]
 
         return
 
@@ -151,17 +151,20 @@ class NeuralNet:
         self.test = []
         self.validation = []
         self.alpha = 0.0
+        self.lamb = 0.0
         self.err = 0.0
         self.recall = 0.0
         self.acc = 0.0
+        self.weight_sum = 0.0
 
-    def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha):
+    def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha, lamb):
         self.dataset = dataset
         self.neurons_input_layer = neurons_input_layer
         self.neurons_hidden_layer = neurons_hidden_layer
         self.neurons_output_layer = neurons_output_layer
         self.layer_num = layer_num
         self.alpha = alpha
+        self.lamb = lamb
 
         self.layers.append(Layer(input_layer, self.neurons_input_layer, self.neurons_input_layer, self.alpha))
         #  primeira hidden layer tem um número diferenciado de entradas
@@ -181,6 +184,14 @@ class NeuralNet:
 
         return
 
+    def calc_weight_sum(self):
+        for layer in self.layers:
+            if layer.type is not input_layer:
+                for weight in layer.weights:
+                    self.weight_sum += weight * weight
+
+        return
+
     def err_func_single(self, y):
         predicted = self.layers[self.layer_num+2-1].activia
         k = predicted.__len__()
@@ -196,7 +207,7 @@ class NeuralNet:
         for inst in self.train:
             self.forward_feed(inst[0])
             err += self.err_func_single(inst[1])
-        err = err/n
+        err = err/n + (self.lamb/(2*n)) * self.weight_sum
 
         return err
 
@@ -209,7 +220,7 @@ class NeuralNet:
 
     def calc_gradients(self):
         for i in range(self.layer_num+2-1, 0, -1):
-            self.layers[i].gradient()
+            self.layers[i].gradient(self.lamb)
 
         return
 
@@ -223,6 +234,8 @@ class NeuralNet:
         i = 0
         err_prev = 0.0
         for inst in self.train:
+            self.weight_sum = 0.0
+            self.calc_weight_sum()
             self.forward_feed(inst[0])
             self.calc_deltas(inst[1])
             self.calc_gradients()
@@ -487,16 +500,16 @@ class NeuralNet:
 
 if __name__ == '__main__':
     #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha):
-    # neural_net = NeuralNet()
-    # neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.01)
-    # neural_net.train = [([1.5], [1.0])]
+    neural_net = NeuralNet()
+    neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.1, 0.5)
+     #neural_net.train = [([1.5], [1.0])]
     #  neural_net.layers[1].weights = [0.39]
-    #  neural_net.layers[2].weights = [0.94]
-    #  neural_net.layers[1].bias_weights = [0.0]
-    #  neural_net.layers[2].bias_weights = [0.0]
-    # neural_net.read_haberman()
-    # for i in range(1):
-    #     neural_net.train_net()
-    # neural_net.test_net(2)
-    # print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
-    calc_num_gradients(0.0000001)
+     # neural_net.layers[2].weights = [0.94]
+      #neural_net.layers[1].bias_weights = [0.0]
+      #neural_net.layers[2].bias_weights = [0.0]
+    neural_net.read_haberman()
+    for i in range(1):
+        neural_net.train_net()
+    neural_net.test_net(2)
+    print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall))
+    # calc_num_gradients(0.0000001)
