@@ -1,4 +1,4 @@
-import random, math
+import random, math, sys
 
 input_layer = 0
 hidden_layer = 1
@@ -212,6 +212,16 @@ class NeuralNet:
 
         return err
 
+    def err_func_val(self):
+        n = self.validation.__len__()
+        err = 0.0
+        for inst in self.validation:
+            self.forward_feed(inst[0])
+            err += self.err_func_single(inst[1])
+        err = err/n
+
+        return err
+
     def calc_deltas(self, expected):
         self.layers[self.layer_num+2-1].output_delta(expected)
         for i in range(self.layer_num, 0, -1):
@@ -255,6 +265,13 @@ class NeuralNet:
             print(self.err_func())
 
         return
+
+    def validate_net(self):
+        i = 0
+        for inst in self.train:
+            self.forward_feed(inst[0])
+
+        return self.err_func_val()
 
     def test_single(self, expected, target):
         predicted = self.layers[self.layer_num+2-1].activia
@@ -456,7 +473,7 @@ class NeuralNet:
                 out = [0.0, 1.0, 0.0]
             else:
                 out = [0.0, 0.0, 1.0]
-            self.train.append(([inst[j] for j in range(0, 9)], out))
+            self.train.append(([float(inst[j]) for j in range(0, 9)], out))
 
         for i in range(int(test_size*size)):  # reads testsize instances of the dataset as test data
             index = random.randint(0, cmc_in.__len__()-1)
@@ -467,7 +484,7 @@ class NeuralNet:
                 out = [0.0, 1.0, 0.0]
             else:
                 out = [0.0, 0.0, 1.0]
-            self.test.append(([inst[j] for j in range(0, 9)], out))
+            self.test.append(([float(inst[j]) for j in range(0, 9)], out))
 
         for inst in cmc_in:
             if int(inst[9]) == 1:
@@ -476,7 +493,7 @@ class NeuralNet:
                 out = [0.0, 1.0, 0.0]
             else:
                 out = [0.0, 0.0, 1.0]
-            self.validation.append(([inst[j] for j in range(0, 9)], out))
+            self.validation.append(([float(inst[j]) for j in range(0, 9)], out))
 
         cmc_in.clear()
 
@@ -564,18 +581,79 @@ class NeuralNet:
 
         return
 
+
+def testing_haberman():
+    neural_net0 = NeuralNet()
+    neural_net0.initialize('haberman.dat', 3, 10, 2, 6, 0.01, 0.2)
+    neural_net0.read_haberman()
+    neural_net0.train_net()
+
+    neural_net1 = NeuralNet()
+    neural_net1.initialize('haberman.dat', 3, 5, 2, 4, 0.1, 0.1)
+    neural_net1.read_haberman()
+    neural_net1.train_net()
+
+    neural_net2 = NeuralNet()
+    neural_net2.initialize('haberman.dat', 3, 5, 2, 6, 0.3, 0.2)
+    neural_net2.read_haberman()
+    neural_net2.train_net()
+
+    err0 = neural_net0.validate_net()
+    err1 = neural_net1.validate_net()
+    err2 = neural_net2.validate_net()
+
+
+def testing_wine():
+    neural_net0 = NeuralNet()
+    neural_net0.initialize('wine.dat', 13, 10, 3, 6, 0.01, 0.2)
+    neural_net0.read_wine()
+    neural_net0.train_net()
+
+    neural_net1 = NeuralNet()
+    neural_net1.initialize('wine.dat', 13, 5, 3, 4, 0.1, 0.1)
+    neural_net1.read_wine()
+    neural_net1.train_net()
+
+    neural_net2 = NeuralNet()
+    neural_net2.initialize('wine.dat', 13, 5, 3, 6, 0.3, 0.2)
+    neural_net2.read_wine()
+    neural_net2.train_net()
+
+    err0 = neural_net0.validate_net()
+    err1 = neural_net1.validate_net()
+    err2 = neural_net2.validate_net()
+
+
+def testing_cmc():
+    neural_net0 = NeuralNet()
+    neural_net0.initialize('cmc.dat', 9, 10, 3, 6, 0.01, 0.2)
+    neural_net0.read_cmc()
+    neural_net0.train_net()
+
+    neural_net1 = NeuralNet()
+    neural_net1.initialize('cmc.dat', 9, 5, 3, 4, 0.1, 0.1)
+    neural_net1.read_cmc()
+    neural_net1.train_net()
+
+    neural_net2 = NeuralNet()
+    neural_net2.initialize('cmc.dat', 9, 5, 3, 6, 0.3, 0.2)
+    neural_net2.read_cmc()
+    neural_net2.train_net()
+
+    err0 = neural_net0.validate_net()
+    err1 = neural_net1.validate_net()
+    err2 = neural_net2.validate_net()
+
 if __name__ == '__main__':
     #  def initialize(self, dataset, neurons_input_layer, neurons_hidden_layer, neurons_output_layer, layer_num, alpha, lamb):
-    neural_net = NeuralNet()
-    neural_net.initialize('cancer.dat', 3, 10, 2, 6, 0.01, 0.2)
-     #neural_net.train = [([1.5], [1.0])]
-    #  neural_net.layers[1].weights = [0.39]
-    # neural_net.layers[2].weights = [0.94]
-    #neural_net.layers[1].bias_weights = [0.0]
-    #neural_net.layers[2].bias_weights = [0.0]
-    neural_net.read_cmc()
-    for i in range(1):
-        neural_net.train_net()
-    neural_net.test_net()
-    print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall)+ '  Prec = ' + str(neural_net.prec))
+    #neural_net = NeuralNet()
+    #neural_net.initialize('cancer.dat', 8, 10, 2, 6, 0.01, 0.2)
+
+    #neural_net.read_cmc()
+    #for i in range(1):
+    #    neural_net.train_net()
+    #neural_net.test_net()
+    #print('Acc = ' + str(neural_net.acc) + '  Recall = ' + str(neural_net.recall)+ '  Prec = ' + str(neural_net.prec))
     # calc_num_gradients(0.0000001)
+    if str(sys.argv[1]) == 'num_grad':
+        calc_num_gradients(0.000001)
