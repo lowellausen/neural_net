@@ -1,2 +1,3 @@
-# nn_t1
-First Assignment for Neural Networks Course
+# neural_net
+
+Python implementation  of a neural network to classify medical data.
